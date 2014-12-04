@@ -57,9 +57,9 @@ Gcomps <- function(formula, i, store, beta, family) {
     r_i <- ri(formula, store, i, beta, family)
     Vinv <- Vinv.i(formula, store, i, beta, family)
     val <- Vinv * DD
-    val1 <- t(val) %*% val
+    val1 <- t(val) %*% DD
     val2 <- t(val) %*% r_i
-    middle = crossprod( DD * abs(r_i) ) # Xt diag(u_i^2) X so HC0 in Zeileis sandwich
+    middle = crossprod( val * abs(r_i) ) # Xt diag(u_i^2) X so HC0 in Zeileis sandwich
     list(DtVDi=val1, DtVri=val2, DtVririVD=middle, residi=r_i)
 }
 
@@ -85,7 +85,7 @@ combi <- function(x) {
     if (missing(jobids) & inherits(store, "Registry")) jobids = findDone(store)
     x1 = getX(formula, store, jobids[1])
     if (!(length(beta) == ncol(x1))) stop("length(binit) not compatible with X")
-    while (max(abs(del)) > tol ) {
+    while (max(abs(del/beta)) > tol ) {
         res <- bplapply(jobids, function(ind) Gcomps(formula=formula, i=ind,
 		store=store, beta=beta, family=family))
         delcomp <- combi(res) 
