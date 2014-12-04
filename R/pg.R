@@ -45,25 +45,29 @@ getEta <- function (formula, store, i, beta) getX(formula, store, i) %*% beta
 Di <- function (formula, store, i, beta, family) 
     as.numeric(family()$mu.eta(getEta(formula, store, i, beta))) * getX(formula, store, i)
 
+#
+# here we are going to return a vector
+#
 Vinv.i <- function(formula, store, i, beta, family) 
-    diag(1/family()$variance(getMu(formula, store, i, beta, family)))
+    1/family()$variance(getMu(formula, store, i, beta, family))
 
 Gcomps <- function(formula, i, store, beta, family) {
     DD <- Di(formula, store, i, beta, family)
-    tDD <- t(DD)
+#    tDD <- t(DD)
     r_i <- ri(formula, store, i, beta, family)
     Vinv <- Vinv.i(formula, store, i, beta, family)
-    val <- tDD %*% Vinv 
-    val1 <- val %*% DD
-    val2 <- val %*% r_i
+    val <- Vinv * DD
+    val1 <- t(val) %*% val
+    val2 <- t(val) %*% r_i
     middle = crossprod( DD * abs(r_i) ) # Xt diag(u_i^2) X so HC0 in Zeileis sandwich
     list(DtVDi=val1, DtVri=val2, DtVririVD=middle, residi=r_i)
 }
 
 combi <- function(x) {
-    xx <- x[[1]] 
+    kp = c("DtVDi", "DtVri", "DtVririVD") # leave residi alone
+    xx <- x[[1]][kp]
     for (i in 2:length(x))
-        xx <- Map("+", xx, x[[i]]) 
+        xx <- Map("+", xx, x[[i]][kp]) 
     xx
 }
 
@@ -92,6 +96,11 @@ combi <- function(x) {
         del <- solve_DtVDi %*% delcomp[[2]]
         beta <- beta + del
         robvar <- solve_DtVDi %*% (delcomp[[3]] %*% solve_DtVDi) 
+        if (options()$verbose) {
+            print(paste("iter ", curit))
+            print("beta:")
+            print(beta)
+            }
         curit <- curit + 1
         if (curit > maxit) 
             stop(paste("maxit [", maxit, "] iterations exceeded"))
