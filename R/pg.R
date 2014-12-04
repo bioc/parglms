@@ -105,7 +105,9 @@ combi <- function(x) {
         if (curit > maxit) 
             stop(paste("maxit [", maxit, "] iterations exceeded"))
     }
-    list(coefficients=beta, eff.variance=s2*solve_DtVDi, robust.variance=robvar, s2=s2,
+    fac = s2
+    if (!(deparse(substitute(family))=="gaussian")) fac=1.0
+    list(coefficients=beta, eff.variance=fac*solve_DtVDi, robust.variance=robvar, s2=s2,
        niter = curit-1 )
       
 }

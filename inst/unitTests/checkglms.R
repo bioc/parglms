@@ -37,7 +37,7 @@ checkglms = function() {
      maxit=50)
  checkTrue(max(abs(pp$coef-m1$coef)) < 1e-5)
  se1 = summary(m1)$coef[,2]
- sepp = sqrt(diag(pp$eff/pp$s2))
+ sepp = sqrt(diag(pp$eff))
  checkTrue(max(abs(se1-sepp)) < 1e-5)
  TRUE
 }
