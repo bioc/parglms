@@ -1,0 +1,163 @@
+
+---
+title: "parglms: fitting generalized linear and related models 
+        with parallel evaluation of contributions to sufficient statistics"
+author: "Vincent J. Carey, stvjc at channing.harvard.edu"
+date: "December 2014"
+output:
+  pdf_document:
+    toc: yes
+    number_sections: yes
+  html_document:
+    highlight: pygments
+    number_sections: yes
+    theme: united
+    toc: yes
+---
+
+<!--
+%\VignetteEngine{knitr::rmarkdown}
+%\VignetteIndexEntry{parglms: parallelized fitting of GLM-like models}
+-->
+
+```{r style, echo = FALSE, results = 'asis'}
+BiocStyle::markdown()
+```
+
+# Introduction
+
+The main concern of the `r Biocpkg("parglms")` package is supporting
+efficient computations for modeling with dispersed data.  The motivating
+use case is an eQTL analysis as exemplified in `r Biocexptpkg("geuvStore")`.
+A `r CRANpkg("BatchJobs")` Registry mediates access to collections of
+millions of statistics on SNP-transcript association.  We want to use
+statistical modeling to perform inference on features of SNPs contributing
+to various phenotypic conditions through effects on gene expression.
+
+Formally, let $y$ denote an $N$ vector with
+mean function $\mu(\beta)$ and variance function
+$V(\mu)$.  The parameter vector of interest, $\beta$,
+is of dimension $p$, satisfying
+$g(\mu) = X \beta$, where $X$ is $N \times p$.
+In conventional use of generalized linear
+models (GLMs), functions $\mu$ and $V$ have simple
+forms and are programmed in the `family` elements
+for `stats::glm`.  The models are fit by solving equations
+of the form
+$$
+D^tW[y-\mu(\beta)] = 0
+$$
+where $W$ is diagonal with elements prescribed by the reciprocal variance
+function, and
+$D = \partial \mu / \partial \beta$.  
+
+The key motivation for this
+package is the recognition that steps towards the solution
+of the equation can often be arithmetically decomposed in various ways,
+and neither holistic nor serial computation is required for most
+of the calculations.  We can therefore accomplish the model fitting
+task in a scalable way, decomposing the data into parts that fit
+comfortably in memory, and performing operations in parallel among
+the parts whenever possible.
+
+# Illustration with a data.frame: dispersal and analysis
+
+We use BatchJobs to disperse data into small chunks.
+
+```{r dodisp}
+library(MASS)
+library(BatchJobs)
+data(anorexia)  # N = 72
+myr = makeRegistry("abc", file.dir=tempfile())
+chs = chunk(1:nrow(anorexia), n.chunks=18) # 4 recs/chunk
+f = function(x) anorexia[x,]
+options(BBmisc.ProgressBar.style="off")
+batchMap(myr, f, chs)
+showStatus(myr)
+```
+
+We are now poised to rewrite the data.frame contents
+into chunks.
+
+```{r execdisp, results="hide", echo=FALSE}
+suppressMessages(submitJobs(myr,progressbar=FALSE))
+waitForJobs(myr) 
+```
+```{r fakk, eval=FALSE}
+submitJobs(myr)
+waitForJobs(myr) 
+```
+```{r lkres}
+loadResult(myr,1)
+```
+
+The `parGLM` method will fit the model specified in the formula.
+The task of iterating over chunks is left to the `r Biocpkg("BiocParallel")`
+`bplapply`, and this will implicitly use whatever concurrent
+computing approach has been registered.
+
+```{r dopar}
+library(parglms)
+pp = parGLM( Postwt ~ Treat + Prewt, myr,
+   family=gaussian, binit = c(0,0,0,0), maxit=10, tol=.001 )
+names(pp)
+pp$coef
+```
+
+# Illustration with geuvStore
+
+In this application we model the probability that a SNP has been
+identified as a GWAS hit, as a function of aspects of its genomic
+context and its association with expression as measured using
+RNA-seq in GEUVADIS.
+
+In the following function, we 'decorate' the outputs of `r Biocpkg("gQTLstats")`
+`cisAssoc` as serialized in `r Biocpkg("geuvStore")` with information
+on GWAS hit status and enclosing chromatin state.
+
+```{r defineUpdate}
+updateJob = function(store, i) {
+ library(gQTLstats)
+ if (!exists("hmm878")) data(hmm878)
+ library(gwascat)
+ if (!exists("gwrngs19")) data(gwrngs19)
+ seqlevelsStyle(hmm878) = "NCBI" 
+ seqlevelsStyle(gwrngs19) = "NCBI"
+ tmp = loadResult(store, i)
+ tmp$isGwasHit = 1*(tmp %in% gwrngs19)
+ levs = unique(hmm878$name)
+ tmp$hmmState = factor(rep("13_Heterochrom/lo", length(tmp)),levels=levs)
+ relevel(tmp$hmmState, "13_Heterochrom/lo")
+ ov = findOverlaps(tmp, hmm878)
+ tmp$hmmState[ queryHits(ov) ] = factor(hmm878$name[ subjectHits(ov) ],
+   levels=levs)
+ rm(hmm878)
+ rm(gwrngs19)
+ gc()
+ as(tmp, "data.frame")
+}
+```
+
+We'll try this out here:
+```{r doge}
+suppressPackageStartupMessages({
+library(geuvStore)
+library(gQTLBase)
+library(gQTLstats)
+})
+prst = partialRegistry()
+ud1 = updateJob( prst, 1 )
+table(ud1$isGwasHit)
+table(ud1$hmmState)
+```
+
+Now we can fit a very simple model for SNP phenorelevance.  We set the
+extractor component of the registry to the update function defined above.
+```{r domod}
+prst$extractor = updateJob
+p1 = parGLM( isGwasHit ~ hmmState, prst, family=binomial, binit=rep(0,15), tol=.001,
+    maxit = 10 )
+ans= list(coef=p1$coef, s.e.=sqrt(diag(p1$eff.var)))
+ans$z = ans[[1]]/ans[[2]]
+do.call(cbind, ans)
+```

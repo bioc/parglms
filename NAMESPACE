@@ -1,0 +1,8 @@
+import(methods)
+
+import(BiocGenerics)
+importFrom(BiocParallel, bplapply, bpparam)
+importFrom(BatchJobs, makeRegistry, findDone, loadResult)
+
+export("parGLM")
+exportMethods("parGLM")
