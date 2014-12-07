@@ -1,6 +1,6 @@
 Package: parglms
 Title: support for parallelized estimation of GLMs/GEEs
-Version: 0.0.4
+Version: 0.0.5
 Author: VJ Carey <stvjc@channing.harvard.edu>
 Description: support for parallelized estimation of GLMs/GEEs,
 	catering for dispersed data
@@ -11,3 +11,4 @@ Maintainer: VJ Carey <stvjc@channing.harvard.edu>
 License: Artistic-2.0
 LazyLoad: yes
 BiocViews: statistics, genetics
+ByteCompile: TRUE
