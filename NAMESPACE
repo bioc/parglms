@@ -4,5 +4,5 @@ import(BiocGenerics)
 importFrom(BiocParallel, bplapply, bpparam)
 importFrom(BatchJobs, makeRegistry, findDone, loadResult)
 
-export("parGLM")
+export("parGLM", summaryPG)
 exportMethods("parGLM")

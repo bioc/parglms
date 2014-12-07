@@ -117,3 +117,15 @@ combi <- function(x) {
       
 }
 
+summaryPG = function(x) {
+#
+# eventually we'll get an object
+#
+  co = x$coeff
+  se = sqrt(diag(x$eff))
+  robse = sqrt(diag(x$rob))
+  z = x$coeff/se
+  robz = x$coeff/robse
+  data.frame(beta=co, s.e.=se, eff.z=z, rob.s.e.=robse, rob.z=robz)
+}
+
