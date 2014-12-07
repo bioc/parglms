@@ -15,9 +15,6 @@
 ### -------------------------------------------------------------------------
 ###
 
-#job2dfClo = function(tx=force) function(store, i) tx( loadResult(store, i) )
-
-#job2df = job2dfClo()
 job2df = function(store, i) {
  if (!is.null(store$extractor)) {
   stopifnot( all(names(formals(store$extractor))==c("store", "i")) )
@@ -60,14 +57,13 @@ Gcomps <- function(formula, i, store, beta, family) {
     val1 <- t(val) %*% DD
     val2 <- t(val) %*% r_i
     middle = crossprod( val * abs(r_i) ) # Xt diag(u_i^2) X so HC0 in Zeileis sandwich
-    list(DtVDi=val1, DtVri=val2, DtVririVD=middle, residi=r_i)
+    list(DtVDi=val1, DtVri=val2, DtVririVD=middle, rss=sum(r_i^2), totalN=length(r_i))
 }
 
 combi <- function(x) {
-    kp = c("DtVDi", "DtVri", "DtVririVD") # leave residi alone
-    xx <- x[[1]][kp]
+    xx <- x[[1]]
     for (i in 2:length(x))
-        xx <- Map("+", xx, x[[i]][kp]) 
+        xx <- Map("+", xx, x[[i]]) 
     xx
 }
 
@@ -75,40 +71,49 @@ combi <- function(x) {
 #
 # idea is that Gcomps(formula, i, store, ...) computes elements on chunk i (no cluster structure)
 #
+    converged = FALSE
     beta <- binit
     del <- Inf
     curit <- 0
     robvar <- NA
+    solve_DtVDi <- NA
+    s2 = NA
+    N = NA
+    delcomp = NULL
 #
 # check compatibility of binit and X
 #
     if (missing(jobids) & inherits(store, "Registry")) jobids = findDone(store)
     x1 = getX(formula, store, jobids[1])
     if (!(length(beta) == ncol(x1))) stop("length(binit) not compatible with X")
-    while (max(abs(del/beta)) > tol ) {
+    while ( max(abs(del/beta)) > tol ) {
+        if (maxit == 0) break
+        if (curit > maxit) {
+            message(paste0("NOTE: ", paste("maxit [", maxit, "] iterations exceeded")))
+            break  # converged will be false
+            }
         res <- bplapply(jobids, function(ind) Gcomps(formula=formula, i=ind,
 		store=store, beta=beta, family=family))
         delcomp <- combi(res) 
-        resids = unlist(lapply(res, function(x) x$residi))  # vector will be long -- ff?
-        N = length(resids)
-        s2 = sum(resids^2)/(N-nrow(delcomp[[1]]))
-        solve_DtVDi <- solve(delcomp[[1]])  # move to QR?
-        del <- solve_DtVDi %*% delcomp[[2]]
+        solve_DtVDi <- solve(delcomp$DtVDi)  # move to QR?
+        del <- solve_DtVDi %*% delcomp$DtVri
         beta <- beta + del
-        robvar <- solve_DtVDi %*% (delcomp[[3]] %*% solve_DtVDi) 
+        robvar <- solve_DtVDi %*% (delcomp$DtVririVD %*% solve_DtVDi) 
         if (options()$verbose) {
             print(paste("iter ", curit))
             print("beta:")
             print(beta)
             }
         curit <- curit + 1
-        if (curit > maxit) 
-            stop(paste("maxit [", maxit, "] iterations exceeded"))
     }
+    N = delcomp$totalN
+    s2 = delcomp$rss/(N - nrow(delcomp$DtVDi)) # sum(resids^2)/(N-nrow(delcomp[[1]]))
+    if (maxit == 0) converged = NA
+    else if (curit <= maxit) converged = TRUE
     fac = s2
     if (!(deparse(substitute(family))=="gaussian")) fac=1.0
     list(coefficients=beta, eff.variance=fac*solve_DtVDi, robust.variance=robvar, s2=s2,
-       niter = curit-1 )
+       niter = curit, converged=converged, N=N )
       
 }
 
