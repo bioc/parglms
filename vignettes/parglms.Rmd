@@ -116,25 +116,50 @@ In the following function, we 'decorate' the outputs of `r Biocpkg("gQTLstats")`
 on GWAS hit status and enclosing chromatin state.
 
 ```{r defineUpdate}
-updateJob = function(store, i) {
+library(gQTLstats)
+load("filtFDRc.rda")
+
+decorate = function(store, i) {
+#
+# the data need a distance/MAF filter
+#
  library(gQTLstats)
+ load("filtFDRc.rda")
  if (!exists("hmm878")) data(hmm878)
  library(gwascat)
  if (!exists("gwrngs19")) data(gwrngs19)
- seqlevelsStyle(hmm878) = "NCBI" 
- seqlevelsStyle(gwrngs19) = "NCBI"
+ if (!exists("gwastagger")) data(gwastagger) # will use locations here
+ library(GenomeInfoDb)
+ seqlevelsStyle(hmm878) = "NCBI"
+ seqlevelsStyle(gwrngs19) = "NCBI" 
+ seqlevelsStyle(gwastagger) = "NCBI" 
  tmp = loadResult(store, i)
+ tmp = tmp[ which(tmp$MAF >= 0.05 & tmp$mindist <= 50000) ]
  tmp$isGwasHit = 1*(tmp %in% gwrngs19)
- levs = unique(hmm878$name)
- tmp$hmmState = factor(rep("13_Heterochrom/lo", length(tmp)),levels=levs)
- relevel(tmp$hmmState, "13_Heterochrom/lo")
+ tmp$isGwasTagger = 1*(tmp %in% gwastagger)
+ #levs = unique(hmm878$name)
+ library(GenomicRanges)
  ov = findOverlaps(tmp, hmm878)
- tmp$hmmState[ queryHits(ov) ] = factor(hmm878$name[ subjectHits(ov) ],
+ states = hmm878$name
+ states[ which(states %in% c("13_Heterochrom/lo", "14_Repetitive/CNV",
+      "15_Repetitive/CNV")) ] = "hetrep_1315"
+ levs = unique(states)
+ tmp$hmmState = factor(rep("hetrep_1315", length(tmp)),levels=levs)
+ tmp$hmmState = relevel(tmp$hmmState, "hetrep_1315")
+ tmp$hmmState[ queryHits(ov) ] = factor(states[ subjectHits(ov) ],
    levels=levs)
- rm(hmm878)
- rm(gwrngs19)
- gc()
- as(tmp, "data.frame")
+ tmp$estFDR = getFDRfunc(filtFDRc)( tmp$chisq )
+ tmp$fdrcat = cut(tmp$estFDR, c(-.01, .01, .05, .1, .25, .5, 1.01))
+ tmp$fdrcat = relevel(tmp$fdrcat, "(0.5,1.01]")
+ #tmp$distcat = cut(tmp$mindist, c(-1,0,1000,5000,10000,50000,100000,250000,500001))
+ tmp$distcat = cut(tmp$mindist, c(-1,0,1000,5000,10000,25000,50001))
+ #tmp$distcat = relevel(tmp$distcat, "(2.5e+05,5e+05]")
+ tmp$distcat = relevel(tmp$distcat, "(2.5e+04,5e+04]")
+ tmp$MAFcat = cut(tmp$MAF, c(.049, .075, .1, .25, .51))
+ tmp$MAFcat = relevel(tmp$MAFcat, "(0.25,0.51]")
+ kp = c("seqnames", "start", "probeid", "snp", "estFDR", "fdrcat", "hmmState",
+  "distcat", "MAFcat", "isGwasHit", "isGwasTagger")
+ as(tmp, "data.frame")[,kp]
 }
 ```
 
@@ -146,8 +171,9 @@ library(gQTLBase)
 library(gQTLstats)
 })
 prst = partialRegistry()
-ud1 = updateJob( prst, 1 )
+ud1 = decorate( prst@reg, 1 )
 table(ud1$isGwasHit)
+table(ud1$isGwasTagger)
 table(ud1$hmmState)
 ```
 
@@ -157,7 +183,8 @@ extractor component of the registry to the update function defined above.
 prst$extractor = updateJob
 p1 = parGLM( isGwasHit ~ hmmState, prst, family=binomial, binit=rep(0,15), tol=.001,
     maxit = 10 )
-ans= list(coef=p1$coef, s.e.=sqrt(diag(p1$eff.var)))
-ans$z = ans[[1]]/ans[[2]]
-do.call(cbind, ans)
+summaryPG(p1)
+#ans= list(coef=p1$coef, s.e.=sqrt(diag(p1$eff.var)))
+#ans$z = ans[[1]]/ans[[2]]
+#do.call(cbind, ans)
 ```

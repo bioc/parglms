@@ -112,9 +112,10 @@ combi <- function(x) {
     else if (curit <= maxit) converged = TRUE
     fac = s2
     if (!(deparse(substitute(family))=="gaussian")) fac=1.0
-    list(coefficients=beta, eff.variance=fac*solve_DtVDi, robust.variance=robvar, s2=s2,
+    ans = list(coefficients=beta, eff.variance=fac*solve_DtVDi, robust.variance=robvar, s2=s2,
        niter = curit, converged=converged, N=N )
-      
+    class(ans) = "parglm"
+    ans
 }
 
 summaryPG = function(x) {
