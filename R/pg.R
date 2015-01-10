@@ -114,7 +114,7 @@ combi <- function(x) {
     if (!(deparse(substitute(family))=="gaussian")) fac=1.0
     ans = list(coefficients=beta, eff.variance=fac*solve_DtVDi, robust.variance=robvar, s2=s2,
        niter = curit, converged=converged, N=N )
-    class(ans) = "parglm"
+    class(ans) = c("parglm", "list")
     ans
 }
 
