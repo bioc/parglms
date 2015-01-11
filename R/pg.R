@@ -113,7 +113,7 @@ combi <- function(x) {
     fac = s2
     if (!(deparse(substitute(family))=="gaussian")) fac=1.0
     ans = list(coefficients=beta, eff.variance=fac*solve_DtVDi, robust.variance=robvar, s2=s2,
-       niter = curit, converged=converged, N=N )
+       niter = curit, converged=converged, formula=formula, N=N )
     class(ans) = c("parglm", "list")
     ans
 }
@@ -128,5 +128,17 @@ summaryPG = function(x) {
   z = x$coeff/se
   robz = x$coeff/robse
   data.frame(beta=co, s.e.=se, eff.z=z, rob.s.e.=robse, rob.z=robz)
+}
+
+predict.parglm = function(x, store, jobids) {
+ f = store$extractor
+ bplapply(jobids, function(z) {
+    tmp = f(store, z)
+    obs = tmp[,1]
+#    xx = cbind(1,data.matrix(tmp[,-1]))
+    xx = model.matrix( x$formula, data=tmp )
+    pred = xx %*% x[[1]]
+    cbind(obs=obs, pred=pred)
+    })
 }
 

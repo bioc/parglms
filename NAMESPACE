@@ -6,3 +6,4 @@ importFrom(BatchJobs, makeRegistry, findDone, loadResult)
 
 export("parGLM", summaryPG)
 exportMethods("parGLM")
+S3method("predict", "parglm")
