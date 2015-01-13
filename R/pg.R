@@ -130,7 +130,7 @@ summaryPG = function(x) {
   data.frame(beta=co, s.e.=se, eff.z=z, rob.s.e.=robse, rob.z=robz)
 }
 
-predict.parglm = function(x, store, jobids) {
+bad.predict.parglm = function(x, store, jobids) {
  f = store$extractor
  bplapply(jobids, function(z) {
     tmp = f(store, z)
@@ -139,6 +139,19 @@ predict.parglm = function(x, store, jobids) {
     xx = model.matrix( x$formula, data=tmp )
     pred = xx %*% x[[1]]
     cbind(obs=obs, pred=pred)
+    })
+}
+
+predict.parglm = function (x, store, jobids) 
+{
+    f = store$extractor
+    bplapply(jobids, function(z) {
+        tmp = f(store, z)
+        fr = model.frame(x$formula, tmp)
+        obs = model.extract(fr, "response")
+        xx = model.matrix(x$formula, data = tmp)
+        pred = xx %*% x[[1]]
+        cbind(obs = obs, pred = pred)
     })
 }
 
