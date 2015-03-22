@@ -41,3 +41,4 @@ checkglms = function() {
  checkTrue(max(abs(se1-sepp)) < 1e-5)
  TRUE
 }
+checkglms()

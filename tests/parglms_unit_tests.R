@@ -1,1 +1,1 @@
-BiocGenerics:::testPackage('parglms')
+BiocGenerics:::testPackage("parglms")

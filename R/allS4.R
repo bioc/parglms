@@ -1,6 +1,7 @@
 setOldClass("Registry")
 setGeneric("parGLM", function(formula, store, ..., jobids) standardGeneric("parGLM"))
 setMethod("parGLM", c("formula", "Registry"), function(formula, store, ..., jobids) {
+ theCall = match.call()
  ndots = names(list(...))
  stopifnot(all(c("family", "binit", "tol", "maxit") %in% ndots))
  stopifnot(inherits(list(...)$family, "function"))
@@ -8,6 +9,6 @@ setMethod("parGLM", c("formula", "Registry"), function(formula, store, ..., jobi
  stopifnot(inherits(list(...)$maxit, "numeric"))
  stopifnot(inherits(list(...)$tol, "numeric"))
  # try to check compatibility of length(binit) with features of formula?
- .parglm(formula, store, ..., jobids)
+ .parglm(formula, store, ..., jobids, theCall)
 })
   

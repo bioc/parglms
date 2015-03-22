@@ -3,6 +3,12 @@
 \alias{parGLM-methods}
 \alias{parGLM,formula,Registry-method}
 \alias{parGLM}
+\alias{predict}
+\alias{predict.parglm}
+\alias{print}
+\alias{print.parglm}
+\alias{summary}
+\alias{summary.parglm}
 \title{ fit GLM-like models with parallelized contributions to sufficient statistics }
 \description{
 This package addresses the problem of fitting GLM-like models in a scalable way,
@@ -36,6 +42,10 @@ code{i}.  The standard extraction function is
 
 It must return a data frame, conformant with the expectations of \code{formula}.
 Limited checking is performed.
+
+The predict method computes the linear predictor on data identified
+by jobid in a BatchJobs registry.  Results are returned as output
+of bplapply over the jobids specified in the predict call.
 }
 }}
 \examples{
@@ -56,6 +66,7 @@ if (require(MASS) & require(BatchJobs)) {
    print(pp$robust.variance - hc0)
    }
  }
+ predict(pp, store=myr, jobids=2:3)
 }
 \keyword{methods}
 \keyword{ modeling }
