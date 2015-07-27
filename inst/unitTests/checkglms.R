@@ -39,6 +39,7 @@ checkglms = function() {
  se1 = summary(m1)$coef[,2]
  sepp = sqrt(diag(pp$eff))
  checkTrue(max(abs(se1-sepp)) < 1e-5)
+
+ closeAllConnections()
  TRUE
 }
-checkglms()

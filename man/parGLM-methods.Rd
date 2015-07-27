@@ -61,12 +61,13 @@ if (require(MASS) & require(BatchJobs)) {
    family=gaussian, binit = c(0,0,0,0), maxit=10, tol=.001 )
  print(summary(theLM <- lm(Postwt~Treat+Prewt, data=anorexia)))
  print(pp$coefficients - coef(theLM))
- if (require(sandwich)) {
-   hc0 <- vcovHC(theLM, type="HC0")
-   print(pp$robust.variance - hc0)
-   }
- }
- predict(pp, store=myr, jobids=2:3)
+  if (require(sandwich)) {
+    hc0 <- vcovHC(theLM, type="HC0")
+    print(pp$robust.variance - hc0)
+  }
+}
+predict(pp, store=myr, jobids=2:3)
+closeAllConnections()
 }
 \keyword{methods}
 \keyword{ modeling }
