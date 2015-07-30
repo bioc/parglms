@@ -49,7 +49,8 @@ of bplapply over the jobids specified in the predict call.
 }
 }}
 \examples{
-if (require(MASS) & require(BatchJobs)) {
+if (require(MASS) & require(BatchJobs) & require(BiocParallel)) {
+ register(SerialParam())
  data(anorexia)  # N = 72
  myr = makeRegistry("abc", file.dir=tempfile())
  chs = chunk(1:nrow(anorexia), n.chunks=18) # 4 recs/chunk
@@ -65,9 +66,11 @@ if (require(MASS) & require(BatchJobs)) {
     hc0 <- vcovHC(theLM, type="HC0")
     print(pp$robust.variance - hc0)
   }
-}
+
 predict(pp, store=myr, jobids=2:3)
 closeAllConnections()
+
+}
 }
 \keyword{methods}
 \keyword{ modeling }
