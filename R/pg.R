@@ -92,8 +92,10 @@ combi <- function(x) {
             message(paste0("NOTE: ", paste("maxit [", maxit, "] iterations exceeded")))
             break  # converged will be false
             }
-        res <- bplapply(jobids, function(ind) Gcomps(formula=formula, i=ind,
-		store=store, beta=beta, family=family))
+#        res <- bplapply(jobids, function(ind) Gcomps(formula=formula, i=ind,
+#		store=store, beta=beta, family=family))
+        res <- foreach(ind=jobids) %dopar% { Gcomps(formula=formula, i=ind,
+		store=store, beta=beta, family=family) }
         delcomp <- combi(res) 
         solve_DtVDi <- solve(delcomp$DtVDi)  # move to QR?
         del <- solve_DtVDi %*% delcomp$DtVri
@@ -142,13 +144,14 @@ predict.parglm = function (object, ...) { # (x, store, jobids)
     if (is.null(jobids)) stop("please supply vector of jobids to supply data for prediction")
     f = store$extractor
     if (is.null(f)) f = loadResult
-    bplapply(jobids, function(z) {
+    #bplapply(jobids, function(z) {
+    foreach(z = jobids) %dopar% {
         tmp = f(store, z)
         fr = model.frame(object$formula, tmp)
         obs = model.extract(fr, "response")
         xx = model.matrix(object$formula, data = tmp)
         xx %*% object$coefficients
-    })
+    }   #)
 }
 
 print.parglm = function(x, ...) {

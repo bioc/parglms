@@ -53,7 +53,7 @@ if (require(MASS) & require(BatchJobs)) {
  data(anorexia)  # N = 72
  myr = makeRegistry("abc", file.dir=tempfile())
  chs = chunk(1:nrow(anorexia), n.chunks=18) # 4 recs/chunk
- f = function(x) anorexia[x,]
+ f = function(x) {library(MASS); data(anorexia); anorexia[x,]}
  batchMap(myr, f, chs)
  submitJobs(myr) # now getResult(myr,1) gives back a data.frame
  waitForJobs(myr) # simple dispersal

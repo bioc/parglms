@@ -1,12 +1,12 @@
 Package: parglms
 Title: support for parallelized estimation of GLMs/GEEs
-Version: 1.1.0
+Version: 1.1.1
 Author: VJ Carey <stvjc@channing.harvard.edu>
 Description: support for parallelized estimation of GLMs/GEEs,
 	catering for dispersed data
 Suggests: RUnit, sandwich, MASS
 Depends: methods
-Imports: BiocGenerics, BiocParallel, BatchJobs
+Imports: BiocGenerics, BatchJobs, foreach, doParallel
 Maintainer: VJ Carey <stvjc@channing.harvard.edu>
 License: Artistic-2.0
 LazyLoad: yes

@@ -1,7 +1,10 @@
 import(methods)
 
+import(foreach)
+import(doParallel)
+
 import(BiocGenerics)
-importFrom(BiocParallel, bplapply, bpparam)
+#importFrom(BiocParallel, bplapply, bpparam)
 importFrom(BatchJobs, makeRegistry, findDone, loadResult)
 
 export("parGLM")
