@@ -87,7 +87,7 @@ combi <- function(x) {
     x1 = getX(formula, store, jobids[1])
     if (!(length(beta) == ncol(x1))) stop("length(binit) not compatible with X")
     while ( (crit <- max(abs(del/beta))) > tol ) {
-        if (isTRUE(options()$parGLM.showiter & curit > -1)) {
+        if (isTRUE(options()$parGLM.showiter) & (curit > -1)) {
             message("iteration ", curit, ": criterion value = ", crit)
             }
         if (maxit == 0) break
