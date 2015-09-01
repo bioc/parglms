@@ -45,18 +45,28 @@ Limited checking is performed.
 
 The predict method computes the linear predictor on data identified
 by jobid in a BatchJobs registry.  Results are returned as output
-of bplapply over the jobids specified in the predict call.
+of foreach over the jobids specified in the predict call.
+
+Note that setting option parGLM.showiter to TRUE will provide a message
+tracing progress of the optimization.
 }
 }}
 \examples{
 if (require(MASS) & require(BatchJobs)) {
+# here is the 'sharding' of a small dataset
  data(anorexia)  # N = 72
+# in .BatchJobs.R:
+# best setting for sharding a small dataset on a small machine:
+# cluster.functions = BatchJobs::makeClusterFunctionsInteractive()
  myr = makeRegistry("abc", file.dir=tempfile())
  chs = chunk(1:nrow(anorexia), n.chunks=18) # 4 recs/chunk
  f = function(x) {library(MASS); data(anorexia); anorexia[x,]}
  batchMap(myr, f, chs)
  submitJobs(myr) # now getResult(myr,1) gives back a data.frame
  waitForJobs(myr) # simple dispersal
+# now myr is populated
+ oldopt = options()$parGLM.showiter
+ options(parGLM.showiter=TRUE)
  pp = parGLM( Postwt ~ Treat + Prewt, myr,
    family=gaussian, binit = c(0,0,0,0), maxit=10, tol=.001 )
  print(summary(theLM <- lm(Postwt~Treat+Prewt, data=anorexia)))
@@ -67,6 +77,7 @@ if (require(MASS) & require(BatchJobs)) {
    }
  }
  predict(pp, store=myr, jobids=2:3)
+ options(parGLM.showiter=oldopt)
 }
 \keyword{methods}
 \keyword{ modeling }

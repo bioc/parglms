@@ -74,7 +74,7 @@ combi <- function(x) {
     converged = FALSE
     beta <- binit
     del <- Inf
-    curit <- 0
+    curit <- -1 # (iteration 0 is setup)
     robvar <- NA
     solve_DtVDi <- NA
     s2 = NA
@@ -86,7 +86,10 @@ combi <- function(x) {
     if (missing(jobids) & inherits(store, "Registry")) jobids = findDone(store)
     x1 = getX(formula, store, jobids[1])
     if (!(length(beta) == ncol(x1))) stop("length(binit) not compatible with X")
-    while ( max(abs(del/beta)) > tol ) {
+    while ( (crit <- max(abs(del/beta))) > tol ) {
+        if (isTRUE(options()$parGLM.showiter & curit > -1)) {
+            message("iteration ", curit, ": criterion value = ", crit)
+            }
         if (maxit == 0) break
         if (curit > maxit) {
             message(paste0("NOTE: ", paste("maxit [", maxit, "] iterations exceeded")))
@@ -102,12 +105,15 @@ combi <- function(x) {
         beta <- beta + del
         robvar <- solve_DtVDi %*% (delcomp$DtVririVD %*% solve_DtVDi) 
         if (options()$verbose) {
-            print(paste("iter ", curit))
-            print("beta:")
-            print(beta)
+            message(paste("iter ", curit))
+            message("beta:")
+            message(paste(round(beta,4), collapse=", "))
             }
         curit <- curit + 1
     }
+    if (isTRUE(options()$parGLM.showiter)) {
+            message("iteration ", curit, ": criterion value = ", crit)
+            }
     N = delcomp$totalN
     s2 = delcomp$rss/(N - nrow(delcomp$DtVDi)) # sum(resids^2)/(N-nrow(delcomp[[1]]))
     if (maxit == 0) converged = NA
