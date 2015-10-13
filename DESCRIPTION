@@ -1,6 +1,6 @@
 Package: parglms
 Title: support for parallelized estimation of GLMs/GEEs
-Version: 1.1.2
+Version: 1.2.0
 Author: VJ Carey <stvjc@channing.harvard.edu>
 Description: support for parallelized estimation of GLMs/GEEs,
 	catering for dispersed data
