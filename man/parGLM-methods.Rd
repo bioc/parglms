@@ -21,7 +21,7 @@ to create low-dimensional summaries from which model fits may be constructed.
 \item{\code{signature(formula = "formula", store = "Registry")}}{
 The model data are assumed to lie in the \code{file.dir/jobs/*}
 folders, with \code{file.dir} defined in the \code{store}, which is
-an instance of \code{\link[BatchJobs]{Registry}}.
+an instance of \code{\link{Registry}}.
 
 Additional arguments must be supplied:
 \describe{
