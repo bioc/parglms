@@ -1,9 +1,12 @@
-
 ---
 title: "parglms: fitting generalized linear and related models 
         with parallel evaluation of contributions to sufficient statistics"
 author: "Vincent J. Carey, stvjc at channing.harvard.edu"
 date: "December 2014"
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{parglms: parallelized GLM}
+  %\VignetteEncoding{UTF-8}
 output:
   pdf_document:
     toc: yes
@@ -14,11 +17,6 @@ output:
     theme: united
     toc: yes
 ---
-
-<!--
-%\VignetteEngine{knitr::rmarkdown}
-%\VignetteIndexEntry{parglms: parallelized fitting of GLM-like models}
--->
 
 ```{r style, echo = FALSE, results = 'asis'}
 BiocStyle::markdown()
