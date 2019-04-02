@@ -24,7 +24,7 @@ a \code{\link{Registry}}.
 Maintainer: \packageMaintainer{parglms}
 }
 \references{
-This package shares an objective with the \code{\link{bigglm}}
+This package shares an objective with the \code{bigglm}
 methods of \code{biglm}.  In \code{bigglm}, a small-RAM-footprint algorithm
 is employed, with sequential chunking to update statistics in each iteration.
 In \code{parGLM} the footprint is likewise controllable, but statistics
