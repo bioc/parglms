@@ -32,7 +32,6 @@ in each iteration are evaluated in parallel over chunks.
 }
 \keyword{ package }
 %\seealso{
-%\code{\link[bigglm:-package]{<pkg>}} ~~
 %}
 \examples{
 showMethods("parGLM")
