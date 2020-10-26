@@ -117,7 +117,7 @@ on GWAS hit status and enclosing chromatin state.
 This is intensive; the `litdec` function simply
 computes GWAS hit status and chromatin state.
 
-```{r defineUpdate}
+```{r defineUpdate, eval=FALSE}
 litdec = function(grWithFDR) {
  tmp = grWithFDR
  library(gQTLstats)
@@ -185,7 +185,7 @@ decorate = function(grWithFDR) {
 ```
 
 We'll try this out here:
-```{r doge}
+```{r doge, eval=FALSE}
 suppressPackageStartupMessages({
 library(geuvStore2)
 library(gQTLBase)
