@@ -1,12 +1,19 @@
 Package: parglms
 Title: support for parallelized estimation of GLMs/GEEs
-Version: 1.25.0
+Version: 1.25.1
 Author: VJ Carey <stvjc@channing.harvard.edu>
 Description: This package provides support for parallelized estimation of GLMs/GEEs,
 	catering for dispersed data.
-Suggests: RUnit, sandwich, MASS, knitr, 
-	GenomeInfoDb, GenomicRanges,
-	gwascat, BiocStyle
+Suggests: 
+    RUnit,
+    sandwich,
+    MASS,
+    knitr,
+    GenomeInfoDb,
+    GenomicRanges,
+    gwascat,
+    BiocStyle,
+    rmarkdown
 VignetteBuilder: knitr
 Depends: methods
 Imports: BiocGenerics, BatchJobs, foreach, doParallel
